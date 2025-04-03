@@ -4,10 +4,14 @@ spring:
     username: roadit_superuser
     password: road!tdb
     driver-class-name: org.postgresql.Driver
+  security:
+    user:
+      name: user
+      password: user
 
   jpa:
     hibernate:
-      ddl-auto: update # 개발 중: update / 운영: validate 또는 none
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
