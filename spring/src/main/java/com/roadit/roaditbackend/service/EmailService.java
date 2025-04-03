@@ -1,3 +1,4 @@
+package com.roadit.roaditbackend.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
