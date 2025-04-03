@@ -1,7 +1,8 @@
-package com.roadit.repository;
+package com.roadit.roaditbackend.repository;
 
-import com.roadit.entity.EmailToken;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.roadit.roaditbackend.entity.EmailToken;
 
 public interface EmailTokenRepository extends JpaRepository<EmailToken, String> {
 }
