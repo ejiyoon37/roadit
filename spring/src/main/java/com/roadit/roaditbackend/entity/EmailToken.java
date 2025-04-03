@@ -1,4 +1,4 @@
-package com.roadit.entity;
+package com.roadit.roaditbackend.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
