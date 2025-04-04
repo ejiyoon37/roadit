@@ -22,7 +22,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/send-code", "/api/auth/verify-code").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .formLogin().disable();
+                .formLogin().disable()
+                .oauth2Login();
 
         return http.build();
     }
