@@ -5,19 +5,24 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import lombok.RequiredArgsConstructor;
+
 
 @Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/hello").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .httpBasic(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable());
+                .csrf().disable()
+                .authorizeHttpRequests()
+                .requestMatchers("/api/auth/send-code", "/api/auth/verify-code").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .formLogin().disable();
 
         return http.build();
     }
