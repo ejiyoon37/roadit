@@ -1,9 +1,7 @@
 FROM gradle:8.5-jdk17 AS builder
-ENV JAVA_TOOL_OPTIONS="-Djdk.tls.client.protocols=TLSv1.2"
 WORKDIR /app
 COPY . .
-RUN gradle build --no-daemon --refresh-dependencies -x test
-
+RUN gradle build -x test
 
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
