@@ -23,19 +23,19 @@ spring:
       enabled: true
 
   mail:
-  host: email-smtp.ap-northeast-2.amazonaws.com
-  port: 587
-  username: AKIA3CB2U5XWWH6P3RFD
-  password: BGHeKhd17BjqhI6+wcITEVoltDgTycrl8yGo9p1NmCHO
-  protocol: smtp
-  properties:
-    mail:
-      smtp:
-        auth: true
-        starttls:
-          enable: true
-          required: true
-  default-encoding: UTF-8
+    host: email-smtp.ap-northeast-2.amazonaws.com
+    port: 587
+    username: AKIA3CB2U5XWWH6P3RFD
+    password: BGHeKhd17BjqhI6+wcITEVoltDgTycrl8yGo9p1NmCHO
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+    default-encoding: UTF-8
 
 server:
   port: 8080
