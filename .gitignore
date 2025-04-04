@@ -1,10 +1,10 @@
 HELP.md
 .gradle
 build/
+**/.env
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-spring/.env
 
 ### STS ###
 .apt_generated
