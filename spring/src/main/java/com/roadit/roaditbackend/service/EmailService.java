@@ -4,8 +4,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 @Service
 @RequiredArgsConstructor
@@ -20,8 +20,14 @@ public class EmailService {
 
             helper.setTo(toEmail);
             helper.setSubject(subject);
-            helper.setText(body, true); // HTML 본문 허용
-            helper.setFrom("roadit247@gmail.com", "roadit"); // 보이는 이름 지정
+            helper.setText(body, true);
+            try {
+                helper.setFrom("roadit247@gmail.com", "roadit");
+            }
+            catch (Exception e) {
+                throw new RuntimeException("이메일 전송 실패", e);
+            }
+
 
             mailSender.send(message);
 
