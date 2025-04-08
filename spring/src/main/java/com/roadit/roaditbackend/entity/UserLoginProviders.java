@@ -1,16 +1,18 @@
-package com.roadit.roaditbackend.domain.user.entity;
+package com.roadit.roaditbackend.entity;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.roadit.roaditbackend.enums.LoginType;
+import com.roadit.roaditbackend.entity.Users;
+
 
 @Entity
 @Table(name = "user_login_providers")
 @Getter
 @NoArgsConstructor
-public class UserLoginProvider {
+public class UserLoginProviders {
 
     @Id
     @Column(length = 36)
@@ -18,7 +20,7 @@ public class UserLoginProvider {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Users user;
 
     // enum LoginType: GOOGLE, ROADIT 등
     @Enumerated(EnumType.STRING)
@@ -39,7 +41,7 @@ public class UserLoginProvider {
         this.createdAt = LocalDateTime.now();
     }
 
-    public UserLoginProvider(String id, User user, LoginType provider, String loginId, String password) {
+    public UserLoginProviders(String id, Users user, LoginType provider, String loginId, String password) {
         this.id = id;
         this.user = user;
         this.provider = provider;
@@ -47,3 +49,4 @@ public class UserLoginProvider {
         this.password = password;
     }
 }
+

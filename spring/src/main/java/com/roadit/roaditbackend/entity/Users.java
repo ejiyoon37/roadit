@@ -1,16 +1,15 @@
-package com.roadit.roaditbackend.domain.user.entity;
+package com.roadit.roaditbackend.entity;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
 @Getter
 @NoArgsConstructor
-public class User {
+public class Users {
 
     @Id //google sub
     @Column(length = 36)
@@ -21,17 +20,17 @@ public class User {
 
     private String nickname;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nation_id")
-    private Nation nation;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "nation_id")
+    private Integer nation;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id")
-    private Job job;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "job_id")
+    private Integer job;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id")
-    private School school;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "school_id")
+    private Integer school;
 
     @Column(nullable = false)
     private String name;
@@ -56,7 +55,7 @@ public class User {
         this.createdAt = LocalDateTime.now();
     }
 
-    public User(String id, String email, String name) {
+    public Users(String id, String email, String name) {
         this.id = id;
         this.email = email;
         this.name = name;

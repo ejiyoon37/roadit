@@ -1,6 +1,12 @@
+package com.roadit.roaditbackend.entity;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import com.roadit.roaditbackend.entity.Users;
+
 @Entity
 @Table(name = "user_tokens")
-public class UserToken {
+public class UserTokens {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -8,7 +14,7 @@ public class UserToken {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Users user;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String refreshToken;
