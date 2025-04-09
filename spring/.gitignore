@@ -1,3 +1,4 @@
+### SPRING ###
 .gradle
 build/
 **/.env
@@ -34,8 +35,14 @@ out/
 /.nb-gradle/
 
 ### VS Code ###
-.vscode/
-
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 ### MACOS ###
 .DS_Store
