@@ -44,3 +44,5 @@ out/
 *.sln
 *.sw?
 
+### MACOS ###
+.DS_Store
