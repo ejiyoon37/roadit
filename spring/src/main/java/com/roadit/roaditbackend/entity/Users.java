@@ -20,17 +20,17 @@ public class Users {
 
     private String nickname;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "nation_id")
-    private Integer nation;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nation_id")
+    private Nations nation;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "job_id")
-    private Integer job;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_id")
+    private Jobs job;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "school_id")
-    private Integer school;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id")
+    private Schools school;
 
     @Column(nullable = false)
     private String name;
