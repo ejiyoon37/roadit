@@ -1,14 +1,18 @@
 package com.roadit.roaditbackend.entity;
 
 import lombok.Getter;
+import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+@Builder
 @Entity
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "email_verification")
 public class EmailVerification {
@@ -17,6 +21,7 @@ public class EmailVerification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private String email;
 
     private String code;

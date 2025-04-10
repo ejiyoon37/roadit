@@ -1,7 +1,9 @@
 package com.roadit.roaditbackend.exception;
 
-public class DuplicateEmailException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class DuplicateEmailException extends BaseException {
     public DuplicateEmailException() {
-        super("이미 사용 중인 이메일입니다.");
+        super("DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다.", HttpStatus.BAD_REQUEST);
     }
 }

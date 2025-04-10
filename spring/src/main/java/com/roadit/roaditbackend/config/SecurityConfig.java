@@ -26,7 +26,7 @@ public class SecurityConfig {
         http
                 .csrf().disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/auth/send-code", "/api/auth/verify-code").permitAll()
+                .requestMatchers("/api/auth/send-code", "/api/auth/verify-code", "/auth/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .formLogin().disable()

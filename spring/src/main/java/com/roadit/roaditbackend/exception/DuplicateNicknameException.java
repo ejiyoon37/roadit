@@ -1,8 +1,9 @@
-// DuplicateNicknameException.java
 package com.roadit.roaditbackend.exception;
 
-public class DuplicateNicknameException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class DuplicateNicknameException extends BaseException {
     public DuplicateNicknameException() {
-        super("이미 사용 중인 닉네임입니다.");
+        super("DUPLICATE_NICKNAME", "이미 사용 중인 닉네임입니다.", HttpStatus.BAD_REQUEST);
     }
 }

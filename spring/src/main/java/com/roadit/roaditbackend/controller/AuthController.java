@@ -1,5 +1,6 @@
 package com.roadit.roaditbackend.controller;
 
+import com.roadit.roaditbackend.dto.ApiResponse;
 import com.roadit.roaditbackend.dto.SignupRequest;
 import com.roadit.roaditbackend.dto.SignupResponse;
 import com.roadit.roaditbackend.service.AuthService;
@@ -16,8 +17,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<SignupResponse> signup(@RequestBody @Valid SignupRequest request) {
+    public ResponseEntity<ApiResponse<SignupResponse>> signup(@RequestBody @Valid SignupRequest request) {
         SignupResponse response = authService.signup(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

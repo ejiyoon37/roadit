@@ -8,6 +8,7 @@ import com.roadit.roaditbackend.enums.UserStatus;
 import com.roadit.roaditbackend.enums.LoginType;
 import com.roadit.roaditbackend.exception.DuplicateEmailException;
 import com.roadit.roaditbackend.exception.DuplicateNicknameException;
+import com.roadit.roaditbackend.exception.DuplicateLoginIdException;
 import com.roadit.roaditbackend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +26,10 @@ public class AuthService {
     private final SchoolsRepository schoolsRepository;
 
     public SignupResponse signup(SignupRequest request) {
+        if (request.getProvider() == LoginType.ROADIT &&
+                providerRepository.existsByLoginId(request.getLoginId())) {
+            throw new DuplicateLoginIdException();
+        }
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateEmailException();
         }
