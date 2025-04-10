@@ -1,13 +1,17 @@
 package com.roadit.roaditbackend.entity;
 
 import lombok.Getter;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Builder
 @Table(name = "users")
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor
 public class Users {
 
@@ -36,10 +40,10 @@ public class Users {
     private String name;
 
     @Column(name = "residence_period")
-    private String residencePeriod;
+    private Integer residencePeriod;
 
     @Column(name = "will_settle")
-    private Boolean willSettle = false;
+    private Boolean willSettle;
 
     private String role;
 

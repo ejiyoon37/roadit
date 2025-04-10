@@ -1,7 +1,9 @@
 package com.roadit.roaditbackend.entity;
 
 import lombok.Getter;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import com.roadit.roaditbackend.enums.LoginType;
@@ -9,8 +11,10 @@ import com.roadit.roaditbackend.entity.Users;
 
 
 @Entity
+@Builder
 @Table(name = "user_login_providers")
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor
 public class UserLoginProviders {
 
