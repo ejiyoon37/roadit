@@ -7,5 +7,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class SignupResponse {
     private String message;
-    private String userId;
+    private Long userId;
 }

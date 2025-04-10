@@ -21,7 +21,7 @@ public class EmailVerificationService {
     }
 
     public boolean verifyCode(String email, String code) {
-        return repository.findById(email)
+        return repository.findByEmail(email)
                 .filter(ev -> ev.isValid(code))
                 .map(ev -> {
                     ev.setVerified(true);
