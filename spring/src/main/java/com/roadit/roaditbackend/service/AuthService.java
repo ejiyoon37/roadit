@@ -2,6 +2,8 @@ package com.roadit.roaditbackend.service;
 
 import com.roadit.roaditbackend.dto.SignupRequest;
 import com.roadit.roaditbackend.dto.SignupResponse;
+import com.roadit.roaditbackend.dto.PasswordResetRequest;
+import com.roadit.roaditbackend.dto.PasswordChangeRequest;
 import com.roadit.roaditbackend.entity.Users;
 import com.roadit.roaditbackend.entity.UserLoginProviders;
 import com.roadit.roaditbackend.enums.UserStatus;
@@ -13,21 +15,28 @@ import com.roadit.roaditbackend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.UUID;
+
+
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final UserLoginProviderRepository providerRepository;
+    private final UserLoginProviderRepository userLoginProviderRepository;
     private final PasswordEncoder passwordEncoder;
     private final NationsRepository nationsRepository;
     private final JobsRepository jobsRepository;
     private final SchoolsRepository schoolsRepository;
+    private final EmailService emailService;
+    private final UserLoginProviderRepository providerRepository;
+
 
     public SignupResponse signup(SignupRequest request) {
         if (request.getProvider() == LoginType.ROADIT &&
-                providerRepository.existsByLoginId(request.getLoginId())) {
+                userLoginProviderRepository.existsByLoginId(request.getLoginId())) {
             throw new DuplicateLoginIdException();
         }
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -63,8 +72,49 @@ public class AuthService {
                     .password(passwordEncoder.encode(request.getPassword()));
         }
 
-        providerRepository.save(providerBuilder.build());
+        userLoginProviderRepository.save(providerBuilder.build());
 
         return new SignupResponse("회원가입이 완료되었습니다.", user.getId());
+    }
+
+    @Transactional
+    public String resetPassword(PasswordResetRequest request) {
+        UserLoginProviders provider = userLoginProviderRepository
+                .findByLoginIdAndProvider(request.getLoginId(), LoginType.ROADIT)
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 로그인 ID가 없습니다."));
+
+        if (!provider.getUser().getEmail().equals(request.getEmail())) {
+            throw new IllegalArgumentException("입력하신 정보와 일치하는 계정을 찾을 수 없습니다.");
+        }
+
+        String newPassword = UUID.randomUUID().toString().substring(0, 10);
+        String encoded = passwordEncoder.encode(newPassword);
+        provider.setPassword(encoded);
+        userLoginProviderRepository.save(provider);
+
+
+        String subject = "roadit 비밀번호 초기화 안내";
+        String body = String.format("""
+        <h2>비밀번호 초기화 완료</h2>
+        <p>새 비밀번호는 <strong>%s</strong> 입니다.</p>
+        <p>로그인 후 꼭 비밀번호를 변경해 주세요.</p>
+        """, newPassword);
+
+        emailService.sendVerificationEmail(request.getEmail(), subject, body);
+
+        return "임시 비밀번호가 이메일로 전송되었습니다. 이메일을 확인해 주세요.";
+    }
+
+    @Transactional
+    public void changePassword(PasswordChangeRequest request) {
+        UserLoginProviders provider = providerRepository.findByLoginIdAndProvider(request.getLoginId(), LoginType.ROADIT)
+                .orElseThrow(() -> new IllegalArgumentException("해당 로그인 ID의 유저를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), provider.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        provider.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        providerRepository.save(provider);
     }
 }
