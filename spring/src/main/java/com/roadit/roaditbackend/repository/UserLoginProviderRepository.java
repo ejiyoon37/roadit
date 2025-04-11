@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface UserLoginProviderRepository extends JpaRepository<UserLoginProviders, String> {
     Optional<UserLoginProviders> findByLoginIdAndProvider(String loginId, LoginType provider);
+    boolean existsByLoginId(String loginId);
 }

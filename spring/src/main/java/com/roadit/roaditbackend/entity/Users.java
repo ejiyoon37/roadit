@@ -1,19 +1,25 @@
 package com.roadit.roaditbackend.entity;
 
 import lombok.Getter;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.roadit.roaditbackend.enums.UserStatus;
 
 @Entity
+@Builder
 @Table(name = "users")
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor
 public class Users {
 
     @Id //google sub
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(length = 36)
-    private String id;
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -36,16 +42,17 @@ public class Users {
     private String name;
 
     @Column(name = "residence_period")
-    private String residencePeriod;
+    private Integer residencePeriod;
 
     @Column(name = "will_settle")
-    private Boolean willSettle = false;
+    private Boolean willSettle;
 
     private String role;
 
     private Integer level;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private UserStatus status;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -55,7 +62,7 @@ public class Users {
         this.createdAt = LocalDateTime.now();
     }
 
-    public Users(String id, String email, String name) {
+    public Users(Long id, String email, String name) {
         this.id = id;
         this.email = email;
         this.name = name;

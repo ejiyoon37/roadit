@@ -13,8 +13,9 @@ import lombok.Setter;
 public class Nations {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(length = 36)
-    private String id;
+    private Long id;
 
     @Column(nullable = false)
     private String name;

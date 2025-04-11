@@ -4,7 +4,10 @@ import com.roadit.roaditbackend.entity.EmailVerification;
 import com.roadit.roaditbackend.repository.EmailVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -15,19 +18,38 @@ public class EmailVerificationService {
 
     public String createAndSendVerification(String email) {
         String code = generateCode();
-        EmailVerification ev = EmailVerification.create(email, code, 5);
-        repository.save(ev);
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
+        saveOrUpdateVerificationCode(email, code, expiresAt);
         return code;
     }
 
     public boolean verifyCode(String email, String code) {
-        return repository.findById(email)
-                .filter(ev -> ev.isValid(code))
-                .map(ev -> {
-                    ev.setVerified(true);
-                    repository.save(ev);
-                    return true;
-                }).orElse(false);
+        Optional<EmailVerification> optional = repository.findByEmail(email);
+        return optional.filter(ev -> ev.isValid(code)).map(ev -> {
+            ev.setVerified(true);
+            repository.save(ev);
+            return true;
+        }).orElse(false);
+    }
+
+    @Transactional
+    public void saveOrUpdateVerificationCode(String email, String code, LocalDateTime expiresAt) {
+        EmailVerification existing = repository.findByEmail(email).orElse(null);
+
+        if (existing != null) {
+            existing.setCode(code);
+            existing.setExpiresAt(expiresAt);
+            existing.setVerified(false);
+            repository.save(existing); // update
+        } else {
+            EmailVerification newVerification = EmailVerification.builder()
+                    .email(email)
+                    .code(code)
+                    .expiresAt(expiresAt)
+                    .verified(false)
+                    .build();
+            repository.save(newVerification); // insert
+        }
     }
 
     private String generateCode() {

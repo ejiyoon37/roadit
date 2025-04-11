@@ -1,7 +1,9 @@
 package com.roadit.roaditbackend.entity;
 
 import lombok.Getter;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import com.roadit.roaditbackend.enums.LoginType;
@@ -9,14 +11,17 @@ import com.roadit.roaditbackend.entity.Users;
 
 
 @Entity
+@Builder
 @Table(name = "user_login_providers")
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor
 public class UserLoginProviders {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(length = 36)
-    private String id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -27,7 +32,7 @@ public class UserLoginProviders {
     @Column(nullable = false)
     private LoginType provider;
 
-    @Column(name = "login_id", nullable = false)
+    @Column(name = "login_id", nullable = false, unique = true)
     private String loginId;
 
     @Column(nullable = true)
@@ -41,7 +46,7 @@ public class UserLoginProviders {
         this.createdAt = LocalDateTime.now();
     }
 
-    public UserLoginProviders(String id, Users user, LoginType provider, String loginId, String password) {
+    public UserLoginProviders(Long id, Users user, LoginType provider, String loginId, String password) {
         this.id = id;
         this.user = user;
         this.provider = provider;
