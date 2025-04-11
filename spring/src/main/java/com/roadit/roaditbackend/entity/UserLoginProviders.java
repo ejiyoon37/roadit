@@ -1,6 +1,7 @@
 package com.roadit.roaditbackend.entity;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ import com.roadit.roaditbackend.entity.Users;
 @Builder
 @Table(name = "user_login_providers")
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserLoginProviders {
