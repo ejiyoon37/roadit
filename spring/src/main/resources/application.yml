@@ -1,4 +1,5 @@
 spring:
+
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
     username: ${DB_USER}
@@ -21,9 +22,12 @@ spring:
           authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
           token-uri: https://oauth2.googleapis.com/token
           user-info-uri:
-            https://www.googleapis.com/oauth2/v3/userinfo  security:
-  mvc:
-    throw-exception-if-no-handler-found: true
+            https://www.googleapis.com/oauth2/v3/userinfo
+
+      mvc:
+        throw-exception-if-no-handler-found: true
+
+
   web:
     resources:
       add-mappings: false
@@ -42,19 +46,26 @@ spring:
       enabled: true
 
   mail:
-    host: ${SMTP_HOST}
-    port: ${SMTP_PORT}
-    username: ${SMTP_USER}
-    password: ${SMTP_PASSWORD}
-    protocol: smtp
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-    default-encoding: UTF-8
+    host: ''
+
+#  mail:
+#    host: ${SMTP_HOST}
+#    port: ${SMTP_PORT}
+#    username: ${SMTP_USER}
+#    password: ${SMTP_PASSWORD}
+#    protocol: smtp
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+#            required: true
+#    default-encoding: UTF-8
+
+
+
+
 
 server:
   port: 8080
@@ -71,3 +82,8 @@ logging:
     org.springframework.validation: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type: trace
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-expiration: 900000      # 15분 유효
+  refresh-token-expiration: 604800000  # 7일 유효
