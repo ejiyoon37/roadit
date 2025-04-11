@@ -3,6 +3,7 @@ package com.roadit.roaditbackend.service;
 import com.roadit.roaditbackend.dto.SignupRequest;
 import com.roadit.roaditbackend.dto.SignupResponse;
 import com.roadit.roaditbackend.dto.PasswordResetRequest;
+import com.roadit.roaditbackend.dto.PasswordChangeRequest;
 import com.roadit.roaditbackend.entity.Users;
 import com.roadit.roaditbackend.entity.UserLoginProviders;
 import com.roadit.roaditbackend.enums.UserStatus;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -29,6 +31,7 @@ public class AuthService {
     private final JobsRepository jobsRepository;
     private final SchoolsRepository schoolsRepository;
     private final EmailService emailService;
+    private final UserLoginProviderRepository providerRepository;
 
 
     public SignupResponse signup(SignupRequest request) {
@@ -100,5 +103,18 @@ public class AuthService {
         emailService.sendVerificationEmail(request.getEmail(), subject, body);
 
         return "임시 비밀번호가 이메일로 전송되었습니다. 이메일을 확인해 주세요.";
+    }
+
+    @Transactional
+    public void changePassword(PasswordChangeRequest request) {
+        UserLoginProviders provider = providerRepository.findByLoginIdAndProvider(request.getLoginId(), LoginType.ROADIT)
+                .orElseThrow(() -> new IllegalArgumentException("해당 로그인 ID의 유저를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), provider.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        provider.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        providerRepository.save(provider);
     }
 }
