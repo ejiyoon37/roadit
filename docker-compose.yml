@@ -7,16 +7,10 @@ services:
       - "8080:8080"
     env_file:
       - .env
-    volumes:
-      - ./spring:/app
-    command: ["java", "-jar", "app.jar"]
 
   backend-test:
     build:
       context: ./spring
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.test
     env_file:
       - .env
-    volumes:
-      - ./spring:/app
-    command: ["./gradlew", "test"]
