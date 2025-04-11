@@ -29,4 +29,12 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(ApiResponse.error(e.getMessage(), e.getClass().getSimpleName()));
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<?>> handleIllegalArgument(IllegalArgumentException e) {
+        return ResponseEntity
+                .badRequest()
+                .body(ApiResponse.error(e.getMessage(), e.getClass().getSimpleName()));
+    }
+
 }
