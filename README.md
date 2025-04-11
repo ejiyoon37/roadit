@@ -27,6 +27,13 @@ cd spring
 docker compose up --build
 ```
 
+## ⚙️ 테스트 방법
+
+```bash
+cd spring
+docker-compose build backend-test
+docker-compose run --rm backend-test
+```
 ---
 
 ## 📄 문서 Wiki 링크
