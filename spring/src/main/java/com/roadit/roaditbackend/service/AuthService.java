@@ -1,5 +1,7 @@
 package com.roadit.roaditbackend.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.roadit.roaditbackend.dto.*;
 import com.roadit.roaditbackend.entity.Users;
 import com.roadit.roaditbackend.entity.UserLoginProviders;
@@ -15,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
 import java.util.UUID;
 
 
@@ -31,7 +35,10 @@ public class AuthService {
     private final SchoolsRepository schoolsRepository;
     private final EmailService emailService;
     private final UserLoginProviderRepository providerRepository;
+
     private final JwtUtil jwtUtil;
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     public SignupResponse signup(SignupRequest request) {
@@ -134,6 +141,50 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        return new LoginResponse(accessToken, refreshToken, user.getId(), user.getNickname());
+        return new LoginResponse(accessToken, refreshToken, user.getId());
+    }
+
+    public LoginResponse googleLogin(GoogleLoginRequest request) {
+        String userInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
+        String url = userInfoEndpoint + "?access_token=" + request.getAccessToken();
+
+        String response = restTemplate.getForObject(url, String.class);
+        JsonNode profile;
+
+        try {
+            profile = objectMapper.readTree(response);
+        } catch (Exception e) {
+            throw new RuntimeException("구글 응답 파싱 실패", e);
+        }
+
+        String email = profile.get("email").asText();
+        String name = profile.get("name").asText();
+        String picture = profile.has("picture") ? profile.get("picture").asText() : null;
+
+
+        Users user = userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    Users newUser = Users.builder()
+                            .email(email)
+                            .nickname(name)
+                            .name(name)
+                            .status(UserStatus.ACTIVE)
+                            .build();
+                    userRepository.save(newUser);
+
+                    UserLoginProviders provider = UserLoginProviders.builder()
+                            .user(newUser)
+                            .provider(LoginType.GOOGLE)
+                            .build();
+                    userLoginProviderRepository.save(provider);
+
+                    return newUser;
+                });
+
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        return new LoginResponse( accessToken, refreshToken,user.getId());
+
     }
 }

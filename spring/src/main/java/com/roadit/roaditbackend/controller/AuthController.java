@@ -37,4 +37,10 @@ public class AuthController {
         LoginResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @PostMapping("/login/google")
+    public ResponseEntity<ApiResponse<LoginResponse>> googleLogin(@RequestBody GoogleLoginRequest request) {
+        LoginResponse response = authService.googleLogin(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }
