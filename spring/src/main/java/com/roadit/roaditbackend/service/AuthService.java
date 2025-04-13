@@ -1,9 +1,6 @@
 package com.roadit.roaditbackend.service;
 
-import com.roadit.roaditbackend.dto.SignupRequest;
-import com.roadit.roaditbackend.dto.SignupResponse;
-import com.roadit.roaditbackend.dto.PasswordResetRequest;
-import com.roadit.roaditbackend.dto.PasswordChangeRequest;
+import com.roadit.roaditbackend.dto.*;
 import com.roadit.roaditbackend.entity.Users;
 import com.roadit.roaditbackend.entity.UserLoginProviders;
 import com.roadit.roaditbackend.enums.UserStatus;
@@ -12,6 +9,8 @@ import com.roadit.roaditbackend.exception.DuplicateEmailException;
 import com.roadit.roaditbackend.exception.DuplicateNicknameException;
 import com.roadit.roaditbackend.exception.DuplicateLoginIdException;
 import com.roadit.roaditbackend.repository.*;
+import com.roadit.roaditbackend.security.JwtUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,6 +31,7 @@ public class AuthService {
     private final SchoolsRepository schoolsRepository;
     private final EmailService emailService;
     private final UserLoginProviderRepository providerRepository;
+    private final JwtUtil jwtUtil;
 
 
     public SignupResponse signup(SignupRequest request) {
@@ -116,5 +116,24 @@ public class AuthService {
 
         provider.setPassword(passwordEncoder.encode(request.getNewPassword()));
         providerRepository.save(provider);
+    }
+
+
+
+    public LoginResponse login(@Valid LoginRequest request) {
+        UserLoginProviders provider = userLoginProviderRepository
+                .findByLoginIdAndProvider(request.getLoginId(), LoginType.ROADIT)
+                .orElseThrow(() -> new IllegalArgumentException("로그인 ID 또는 비밀번호가 올바르지 않습니다."));
+
+        if (!passwordEncoder.matches(request.getPassword(), provider.getPassword())) {
+            throw new IllegalArgumentException("로그인 ID 또는 비밀번호가 올바르지 않습니다.");
+        }
+
+        Users user = provider.getUser();
+
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        return new LoginResponse(accessToken, refreshToken, user.getId(), user.getNickname());
     }
 }

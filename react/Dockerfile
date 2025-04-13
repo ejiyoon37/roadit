@@ -8,6 +8,7 @@ COPY ./react/ ./
 COPY ./react/postcss.config.js ./postcss.config.js
 COPY ./react/tailwind.config.js ./tailwind.config.js
 
+RUN chmod +x node_modules/.bin/vite
 RUN npx vite build
 
 FROM nginx:1.27.4-alpine

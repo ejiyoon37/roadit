@@ -1,10 +1,6 @@
 package com.roadit.roaditbackend.controller;
 
-import com.roadit.roaditbackend.dto.ApiResponse;
-import com.roadit.roaditbackend.dto.SignupRequest;
-import com.roadit.roaditbackend.dto.SignupResponse;
-import com.roadit.roaditbackend.dto.PasswordResetRequest;
-import com.roadit.roaditbackend.dto.PasswordChangeRequest;
+import com.roadit.roaditbackend.dto.*;
 import com.roadit.roaditbackend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,5 +30,11 @@ public class AuthController {
     public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody @Valid PasswordChangeRequest request) {
         authService.changePassword(request);
         return ResponseEntity.ok(ApiResponse.success("비밀번호가 변경되었습니다."));
+    }
+
+    @PostMapping("/login/roadit")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
