@@ -14,6 +14,7 @@
 *.iws
 
 ### 🚀 Spring Boot ###
+.gradle/
 spring/.gradle/
 spring/build/
 spring/out/

@@ -23,7 +23,6 @@ Docker 개발 환경과 AWS 인프라를 활용하였습니다.
 ## ⚙️ 실행 방법
 
 ```bash
-cd spring
 docker compose up --build
 ```
 
