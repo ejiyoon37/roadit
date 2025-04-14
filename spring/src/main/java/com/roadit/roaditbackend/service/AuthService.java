@@ -14,6 +14,10 @@ import com.roadit.roaditbackend.repository.*;
 import com.roadit.roaditbackend.security.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -141,32 +145,46 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        return new LoginResponse(accessToken, refreshToken, user.getId());
+        return new LoginResponse(accessToken, refreshToken);
     }
 
     public LoginResponse googleLogin(GoogleLoginRequest request) {
         String userInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
         String url = userInfoEndpoint + "?access_token=" + request.getAccessToken();
 
-        String response = restTemplate.getForObject(url, String.class);
-        JsonNode profile;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Accept", "application/json");
 
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> responseEntity = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+
+        String response = responseEntity.getBody();
+
+        JsonNode profile;
         try {
             profile = objectMapper.readTree(response);
         } catch (Exception e) {
-            throw new RuntimeException("구글 응답 파싱 실패", e);
+            throw new RuntimeException("Failed to parse Google response", e);
+        }
+
+        if (profile.has("error")) {
+            String errorDescription = profile.path("error_description").asText("Invalid token");
+            throw new IllegalArgumentException("Google token error: " + errorDescription);
         }
 
         String email = profile.get("email").asText();
         String name = profile.get("name").asText();
-        String picture = profile.has("picture") ? profile.get("picture").asText() : null;
-
 
         Users user = userRepository.findByEmail(email)
                 .orElseGet(() -> {
                     Users newUser = Users.builder()
                             .email(email)
-                            .nickname(name)
                             .name(name)
                             .status(UserStatus.ACTIVE)
                             .build();
@@ -184,7 +202,24 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        return new LoginResponse( accessToken, refreshToken,user.getId());
+        return new LoginResponse(accessToken, refreshToken);
+    }
 
+    public LoginResponse refreshToken(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new IllegalArgumentException("Invalid refresh token");
+        }
+
+        String userId = jwtUtil.getUserIdFromToken(refreshToken);
+
+        Users user = userRepository.findById(Long.parseLong(userId))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String newAccessToken = jwtUtil.generateAccessToken(user);
+        String newRefreshToken = jwtUtil.generateRefreshToken(user);
+
+        return new LoginResponse(newAccessToken, newRefreshToken);
     }
 }

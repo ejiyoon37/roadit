@@ -43,4 +43,10 @@ public class AuthController {
         LoginResponse response = authService.googleLogin(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@RequestBody @Valid RefreshTokenRequest request) {
+        LoginResponse response = authService.refreshToken(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }
