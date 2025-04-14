@@ -32,17 +32,6 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("비밀번호가 변경되었습니다."));
     }
 
-    @PostMapping("/login/roadit")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest request) {
-        LoginResponse response = authService.login(request);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    @PostMapping("/login/google")
-    public ResponseEntity<ApiResponse<LoginResponse>> googleLogin(@RequestBody GoogleLoginRequest request) {
-        LoginResponse response = authService.googleLogin(request);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@RequestBody @Valid RefreshTokenRequest request) {
