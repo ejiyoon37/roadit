@@ -1,12 +1,16 @@
 package com.roadit.roaditbackend.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import com.roadit.roaditbackend.entity.Users;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
 @Entity
 @Table(name = "user_tokens")
-public class UserTokens {
+public class UserRefreshTokens {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

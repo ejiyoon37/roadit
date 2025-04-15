@@ -3,6 +3,7 @@ package com.roadit.roaditbackend.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.roadit.roaditbackend.dto.*;
+import com.roadit.roaditbackend.entity.UserRefreshTokens;
 import com.roadit.roaditbackend.entity.Users;
 import com.roadit.roaditbackend.entity.UserLoginProviders;
 import com.roadit.roaditbackend.enums.UserStatus;
@@ -14,6 +15,8 @@ import com.roadit.roaditbackend.repository.*;
 import com.roadit.roaditbackend.security.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -39,6 +42,8 @@ public class AuthService {
     private final SchoolsRepository schoolsRepository;
     private final EmailService emailService;
     private final UserLoginProviderRepository providerRepository;
+    private final UserRefreshTokenRepository refreshTokenRepository;
+
 
     private final JwtUtil jwtUtil;
     private final RestTemplate restTemplate = new RestTemplate();
@@ -129,7 +134,16 @@ public class AuthService {
         providerRepository.save(provider);
     }
 
+    public void saveRefreshToken(Users user, String token, String deviceInfo) {
+        refreshTokenRepository.findByUser(user)
+                .ifPresent(refreshTokenRepository::delete);
 
+        UserRefreshTokens newToken = new UserRefreshTokens();
+        newToken.setUser(user);
+        newToken.setRefreshToken(token);
+        newToken.setDeviceInfo(deviceInfo);
+        refreshTokenRepository.save(newToken);
+    }
 
     public LoginResponse login(@Valid LoginRequest request) {
         UserLoginProviders provider = userLoginProviderRepository
@@ -144,6 +158,8 @@ public class AuthService {
 
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        saveRefreshToken(user, refreshToken, "web");
 
         return new LoginResponse(accessToken, refreshToken);
     }
@@ -201,6 +217,7 @@ public class AuthService {
 
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
+        saveRefreshToken(user, refreshToken, "web");
 
         return new LoginResponse(accessToken, refreshToken);
     }
@@ -219,6 +236,8 @@ public class AuthService {
 
         String newAccessToken = jwtUtil.generateAccessToken(user);
         String newRefreshToken = jwtUtil.generateRefreshToken(user);
+
+        saveRefreshToken(user, newRefreshToken, "web");
 
         return new LoginResponse(newAccessToken, newRefreshToken);
     }
