@@ -35,4 +35,5 @@ public class UserRefreshTokens {
         this.createdAt = LocalDateTime.now();
         this.expiresAt = createdAt.plusDays(7);
     }
+
 }
