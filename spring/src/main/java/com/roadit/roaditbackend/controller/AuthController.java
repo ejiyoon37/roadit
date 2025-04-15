@@ -38,4 +38,10 @@ public class AuthController {
         LoginResponse response = authService.refreshToken(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout(@RequestBody LogoutRequest request) {
+        authService.logout(request);
+        return ResponseEntity.ok(ApiResponse.success("로그아웃되었습니다."));
+    }
 }

@@ -27,8 +27,12 @@ public class UserRefreshTokens {
 
     private LocalDateTime createdAt;
 
+    private LocalDateTime expiresAt;
+
     @PrePersist
     public void prePersist() {
+
         this.createdAt = LocalDateTime.now();
+        this.expiresAt = createdAt.plusDays(7);
     }
 }
