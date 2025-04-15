@@ -1,6 +1,7 @@
 package com.roadit.roaditbackend.controller;
 
 
+import com.nimbusds.openid.connect.sdk.LogoutRequest;
 import com.roadit.roaditbackend.dto.*;
 import com.roadit.roaditbackend.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -24,4 +25,6 @@ public class LoginController {
     public ResponseEntity<ApiResponse<LoginResponse>> googleLogin(@RequestBody GoogleLoginRequest request) {
         return ResponseEntity.ok(ApiResponse.success(authService.googleLogin(request)));
     }
+
+
 }

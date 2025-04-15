@@ -82,3 +82,4 @@ jwt:
   secret: ${JWT_SECRET_KEY}
   access-token-expiration: 900000      # 15분 유효
   refresh-token-expiration: 604800000  # 7일 유효
+
