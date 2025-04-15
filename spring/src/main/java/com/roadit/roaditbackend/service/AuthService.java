@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 
 
@@ -233,6 +234,18 @@ public class AuthService {
 
         Users user = userRepository.findById(Long.parseLong(userId))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        UserRefreshTokens tokenRecord = refreshTokenRepository.findByUser(user)
+                .orElseThrow(() -> new IllegalArgumentException("Refresh token not found"));
+
+        if (!tokenRecord.getRefreshToken().equals(refreshToken)) {
+            throw new IllegalArgumentException("Token mismatch");
+        }
+
+        if (tokenRecord.getExpiresAt().isBefore(LocalDateTime.now())) {
+            refreshTokenRepository.delete(tokenRecord);
+            throw new IllegalArgumentException("Refresh token has expired");
+        }
 
         String newAccessToken = jwtUtil.generateAccessToken(user);
         String newRefreshToken = jwtUtil.generateRefreshToken(user);
