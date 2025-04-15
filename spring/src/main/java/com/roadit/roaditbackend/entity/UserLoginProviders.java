@@ -34,7 +34,7 @@ public class UserLoginProviders {
     @Column(nullable = false)
     private LoginType provider;
 
-    @Column(name = "login_id", nullable = false, unique = true)
+    @Column(name = "login_id", nullable = true, unique = true)
     private String loginId;
 
     @Column(nullable = true)
