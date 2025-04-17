@@ -21,7 +21,7 @@ export async function signup(userData) {
 export async function sendVerificationCode(email) {
   try {
     const response = await fetch(
-      `http://localhost:8080/api/auth/send-code?email=${encodeURIComponent(email)}`,
+      `http://localhost:8080/api/email/send-code?email=${encodeURIComponent(email)}`,
       {
         method: "POST",
       }
@@ -40,7 +40,7 @@ export async function sendVerificationCode(email) {
 export async function verifyCode(email, code) {
   try {
     const response = await fetch(
-      `http://localhost:8080/api/auth/verify-code?email=${encodeURIComponent(email)}&code=${code}`,
+      `http://localhost:8080/api/email/verify-code?email=${encodeURIComponent(email)}&code=${code}`,
       {
         method: "POST",
       }
@@ -76,25 +76,42 @@ export async function resetPassword(data) {
   }
 }
 
-export async function changePassword(data) {
-  try {
-    const response = await fetch("http://localhost:8080/api/auth/change-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error?.message || "비밀번호 변경에 실패했습니다.");
+  export async function changePassword(data) {
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+  
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error?.message || "비밀번호 변경에 실패했습니다.");
+      }
+      return result;
+    } catch (error) {
+      throw new Error(error.message);
     }
-    return result;
-  } catch (error) {
-    throw new Error(error.message);
   }
-}
-export async function login(payload) {
-  return axios.post("/api/login", payload);
-}
+  
+  export async function login(credentials) {
+    try {
+      const response = await fetch("http://localhost:8080/api/login/roadit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(credentials),
+      });
+  
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || "로그인에 실패했습니다.");
+      }
+      return data;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }

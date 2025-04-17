@@ -1,8 +1,8 @@
-// src/pages/Login.jsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Bell, Heart, User } from "lucide-react";
 import { login } from "../api/auth";
+import { SITE_NAME } from "../constants";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -42,22 +42,20 @@ export default function LoginPage() {
         localStorage.setItem("loginId", formData.loginId);
       }
 
-      // 로그인 성공 시 홈으로 리다이렉트 (가정: 홈 경로)
+      // 로그인 성공 시 홈으로 리다이렉트
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.");
       setMessage("");
     }
   };
 
   const handleGoogleLogin = () => {
-    // 구글 소셜 로그인 (가정: API 호출 또는 OAuth 리다이렉트)
-    window.location.href = "http://localhost:8080/api/auth/google"; // 예시 URL
+    window.location.href = "http://localhost:8080/api/auth/google";
   };
 
   const handleFacebookLogin = () => {
-    // 페이스북 소셜 로그인 (가정: API 호출 또는 OAuth 리다이렉트)
-    window.location.href = "http://localhost:8080/api/auth/facebook"; // 예시 URL
+    window.location.href = "http://localhost:8080/api/auth/facebook";
   };
 
   return (
@@ -83,7 +81,7 @@ export default function LoginPage() {
       <div className="flex-1 p-6 flex flex-col">
         {/* 로고 및 부제 */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-emerald-500">RoadIt</h1>
+          <h1 className="text-3xl font-bold text-emerald-500">{SITE_NAME}</h1>
           <p className="text-sm text-gray-600 mt-1">유학생을 위한 생활 팁스 서비스</p>
         </div>
 
@@ -173,8 +171,8 @@ export default function LoginPage() {
         </div>
 
         {/* 메시지 표시 */}
-        {message && <p className="text-green-500 mt-4">{message}</p>}
-        {error && <p className="text-red-500 mt-4">{error}</p>}
+        {message && <p className="text-green-500 mt-4 text-center">{message}</p>}
+        {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
       </div>
 
       {/* 하단 네비게이션 */}
@@ -188,7 +186,7 @@ export default function LoginPage() {
           <span className="text-xs">알림</span>
         </Link>
         <Link to="/" className="flex flex-col items-center">
-          <div className="text-emerald-500 font-bold">RoadIt</div>
+          <div className="text-emerald-500 font-bold">{SITE_NAME}</div>
           <span className="text-xs">HOME</span>
         </Link>
         <Link to="/likes" className="flex flex-col items-center">

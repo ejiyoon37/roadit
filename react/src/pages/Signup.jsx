@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { signup, sendVerificationCode, verifyCode } from "../api/auth";
+import { SITE_NAME } from "../constants";
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -16,10 +18,12 @@ export default function Signup() {
     provider: "ROADIT",
   });
   const [code, setCode] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -30,13 +34,18 @@ export default function Signup() {
   };
 
   const handleSendCode = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("유효한 이메일 주소를 입력해주세요.");
+      return;
+    }
     try {
       const response = await sendVerificationCode(formData.email);
       setMessage(response.data.message);
       setIsCodeSent(true);
       setError("");
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "인증번호 전송에 실패했습니다.");
       setMessage("");
     }
   };
@@ -48,25 +57,32 @@ export default function Signup() {
       setIsVerified(true);
       setError("");
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "인증번호가 일치하지 않습니다.");
       setMessage("");
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.password.length < 8) {
+      setError("비밀번호는 최소 8자 이상이어야 합니다.");
+      return;
+    }
+    if (formData.password !== confirmPassword) {
+      setError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
     if (!isVerified) {
       setError("이메일 인증을 완료해주세요.");
       return;
     }
-
     try {
       const response = await signup(formData);
       setMessage(response.data.message);
       setError("");
-      
+      navigate("/"); // 성공 시 로그인 페이지로 이동
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "회원가입에 실패했습니다.");
       setMessage("");
     }
   };
@@ -93,7 +109,7 @@ export default function Signup() {
       {/* 메인 콘텐츠 */}
       <div className="flex-1 p-6 flex flex-col">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-emerald-500">RoadIt</h1>
+          <h1 className="text-3xl font-bold text-emerald-500">{SITE_NAME}</h1>
           <p className="text-sm text-gray-600 mt-1">유학생을 위한 생활 팁스 서비스</p>
         </div>
 
@@ -156,6 +172,14 @@ export default function Signup() {
             value={formData.password}
             onChange={handleInputChange}
             placeholder="비밀번호"
+            className="w-full p-3 border rounded-md"
+            required
+          />
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="비밀번호 확인"
             className="w-full p-3 border rounded-md"
             required
           />
@@ -234,8 +258,8 @@ export default function Signup() {
         </form>
 
         {/* 메시지 표시 */}
-        {message && <p className="text-green-500 mt-4">{message}</p>}
-        {error && <p className="text-red-500 mt-4">{error}</p>}
+        {message && <p className="text-green-500 mt-4 text-center">{message}</p>}
+        {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
       </div>
     </div>
   );
