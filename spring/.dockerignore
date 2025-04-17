@@ -1,8 +1,7 @@
-.gradle
 build
 out
 **/*.iml
 .idea
 *.log
 .DS_Store
-.env
+../.env

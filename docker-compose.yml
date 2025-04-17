@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: ./spring
+    container_name: backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    networks:
+      - web
+
+  frontend:
+    build:
+      context: .
+      dockerfile: react/Dockerfile
+    container_name: frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"   # ✅ 여기서 직접 80포트 연결
+    networks:
+      - web
+
+networks:
+  web:
