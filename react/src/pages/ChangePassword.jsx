@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { changePassword } from "../api/auth";
+import { SITE_NAME } from "../constants";
 
 export default function ChangePassword() {
   const [formData, setFormData] = useState({
@@ -20,12 +21,16 @@ export default function ChangePassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.newPassword.length < 8) {
+      setError("새 비밀번호는 최소 8자 이상이어야 합니다.");
+      return;
+    }
     try {
       const response = await changePassword(formData);
       setMessage(response.data.message);
       setError("");
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "비밀번호 변경에 실패했습니다.");
       setMessage("");
     }
   };
@@ -52,7 +57,7 @@ export default function ChangePassword() {
       {/* 메인 콘텐츠 */}
       <div className="flex-1 p-6 flex flex-col">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-emerald-500">RoadIt</h1>
+          <h1 className="text-3xl font-bold text-emerald-500">{SITE_NAME}</h1>
           <p className="text-sm text-gray-600 mt-1">유학생을 위한 생활 팁스 서비스</p>
         </div>
 
@@ -94,8 +99,8 @@ export default function ChangePassword() {
         </form>
 
         {/* 메시지 표시 */}
-        {message && <p className="text-green-500 mt-4">{message}</p>}
-        {error && <p className="text-red-500 mt-4">{error}</p>}
+        {message && <p className="text-green-500 mt-4 text-center">{message}</p>}
+        {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
       </div>
     </div>
   );

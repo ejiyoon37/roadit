@@ -96,3 +96,22 @@ export async function signup(userData) {
     }
   }
   
+  export async function login(credentials) {
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(credentials),
+      });
+  
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || "로그인에 실패했습니다.");
+      }
+      return data;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
