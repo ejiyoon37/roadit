@@ -21,7 +21,7 @@ export async function signup(userData) {
 export async function sendVerificationCode(email) {
   try {
     const response = await fetch(
-      `http://localhost:8080/api/auth/send-code?email=${encodeURIComponent(email)}`,
+      `http://localhost:8080/api/email/send-code?email=${encodeURIComponent(email)}`,
       {
         method: "POST",
       }
@@ -40,7 +40,7 @@ export async function sendVerificationCode(email) {
 export async function verifyCode(email, code) {
   try {
     const response = await fetch(
-      `http://localhost:8080/api/auth/verify-code?email=${encodeURIComponent(email)}&code=${code}`,
+      `http://localhost:8080/api/email/verify-code?email=${encodeURIComponent(email)}&code=${code}`,
       {
         method: "POST",
       }
@@ -98,7 +98,7 @@ export async function resetPassword(data) {
   
   export async function login(credentials) {
     try {
-      const response = await fetch("http://localhost:8080/api/auth/login", {
+      const response = await fetch("http://localhost:8080/api/login/roadit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
