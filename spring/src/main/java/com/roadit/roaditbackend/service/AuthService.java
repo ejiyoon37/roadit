@@ -143,6 +143,9 @@ public class AuthService {
         newToken.setUser(user);
         newToken.setRefreshToken(token);
         newToken.setDeviceInfo(deviceInfo);
+        newToken.setActive(true);
+        newToken.setExpiresAt(LocalDateTime.now().plusDays(7));
+
         refreshTokenRepository.save(newToken);
     }
 
@@ -242,15 +245,20 @@ public class AuthService {
             throw new IllegalArgumentException("Token mismatch");
         }
 
+        if (!tokenRecord.isActive()) {
+            throw new IllegalStateException("Token is inactive (user may have logged out)");
+        }
+
         if (tokenRecord.getExpiresAt().isBefore(LocalDateTime.now())) {
-            refreshTokenRepository.delete(tokenRecord);
+            tokenRecord.setActive(false);
+            refreshTokenRepository.save(tokenRecord);
             throw new IllegalArgumentException("Refresh token has expired");
         }
 
         String newAccessToken = jwtUtil.generateAccessToken(user);
         String newRefreshToken = jwtUtil.generateRefreshToken(user);
 
-        saveRefreshToken(user, newRefreshToken, "web");
+        saveRefreshToken(user, newRefreshToken, tokenRecord.getDeviceInfo());
 
         return new LoginResponse(newAccessToken, newRefreshToken);
     }
@@ -261,6 +269,9 @@ public class AuthService {
                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
        refreshTokenRepository.findByUserAndDeviceInfo(user, request.getDeviceInfo())
-               .ifPresent(refreshTokenRepository::delete);
+               .ifPresent(token -> {
+                   token.setActive(false);
+                   refreshTokenRepository.save(token);
+               });
    }
 }
