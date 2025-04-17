@@ -3,7 +3,8 @@ import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import ResetPassword from "../pages/ResetPassword";
 import ChangePassword from "../pages/ChangePassword";
-import ForgotPassword from "../pages/ForgotPassword";
+import GoogleLoginCallback from "../pages/GoogleLoginCallback";
+import SignupSuccess from "../pages/SignupSuccess";
 
 export default function AppRouter() {
   return (
@@ -13,7 +14,8 @@ export default function AppRouter() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/change-password" element={<ChangePassword />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/google-callback" element={<GoogleLoginCallback />} />
+        <Route path="/signup-success" element={<SignupSuccess />} />
       </Routes>
     </BrowserRouter>
   );
