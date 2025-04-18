@@ -1,0 +1,7 @@
+[
+    { "value": "1", "label": "소프트웨어 개발자" },
+    { "value": "2", "label": "의사" },
+    { "value": "3", "label": "교사" },
+    { "value": "4", "label": "엔지니어" },
+    { "value": "5", "label": "디자이너" }
+  ]

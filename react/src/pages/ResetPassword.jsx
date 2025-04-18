@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { resetPassword } from "../api/auth";
 import { SITE_NAME } from "../constants";
 
@@ -9,6 +10,7 @@ export default function ResetPassword() {
   });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -24,6 +26,7 @@ export default function ResetPassword() {
       const response = await resetPassword(formData);
       setMessage(response.data.message);
       setError("");
+      navigate("/login"); // 성공 시 로그인 페이지로 이동
     } catch (err) {
       setError(err.message || "비밀번호 초기화에 실패했습니다.");
       setMessage("");
@@ -32,19 +35,11 @@ export default function ResetPassword() {
 
   return (
     <div className="max-w-md mx-auto h-screen flex flex-col bg-white">
-      {/* 상태 바 */}
-      <div className="flex justify-between items-center p-2 text-xs">
-        <div>12:30</div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3">▼</div>
-          <div className="w-3 h-3">▌</div>
-          <div className="w-3 h-3">▌</div>
-        </div>
-      </div>
-
       {/* 헤더 */}
       <div className="flex items-center justify-between p-4 border-b">
-        <button className="text-xl">×</button>
+        <button className="text-xl" onClick={() => navigate(-1)}>
+          ×
+        </button>
         <div className="text-center font-medium">비밀번호 초기화</div>
         <div className="w-4"></div>
       </div>
@@ -54,6 +49,14 @@ export default function ResetPassword() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-emerald-500">{SITE_NAME}</h1>
           <p className="text-sm text-gray-600 mt-1">유학생을 위한 생활 팁스 서비스</p>
+        </div>
+
+        {/* 안내 메시지 */}
+        <div className="text-center mb-4">
+          <p className="text-sm text-gray-600">
+            비밀번호는 암호화되어 저장되므로 찾을 수 없습니다. <br />
+            아래에서 로그인 ID와 이메일을 입력하여 비밀번호를 초기화하세요.
+          </p>
         </div>
 
         {/* 비밀번호 초기화 폼 */}
