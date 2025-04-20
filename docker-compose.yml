@@ -19,7 +19,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80"   # ✅ 여기서 직접 80포트 연결
+      - "80:80"
     networks:
       - web
 

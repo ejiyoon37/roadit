@@ -74,6 +74,7 @@ logging:
   level:
     root: info
     org.springframework.web: DEBUG
+    org.springframework.boot: DEBUG
     org.springframework.validation: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type: trace
