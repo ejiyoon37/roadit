@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signup, sendVerificationCode, verifyCode } from "../api/auth";
-import { fetchCountries } from "../api/data";
-import occupations from "../data/occupations.json";
-import schools from "../data/schools.json";
+import { fetchCountries, fetchUniversities, fetchOccupations } from "../api/data";
 import { SITE_NAME } from "../constants";
 
 export default function Signup() {
@@ -26,35 +24,36 @@ export default function Signup() {
   const [error, setError] = useState("");
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [timer, setTimer] = useState(180); // 3분 타이머 (180초)
   const [countries, setCountries] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [institutions, setInstitutions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isTermsAccepted, setIsTermsAccepted] = useState(false);
   const navigate = useNavigate();
 
-  // 국가 데이터 가져오기
+  // 데이터 로드
   useEffect(() => {
-    const loadCountries = async () => {
+    const loadData = async () => {
       try {
-        const countryList = await fetchCountries();
+        setIsLoading(true);
+        const [countryList, universityList, occupationList] = await Promise.all([
+          fetchCountries(),
+          fetchUniversities(),
+          fetchOccupations(),
+        ]);
         setCountries(countryList);
-        if (countryList.length > 0) {
-          setFormData((prev) => ({ ...prev, nation: countryList[0].value }));
-        }
+        setInstitutions(universityList);
+        setJobs(occupationList);
       } catch (err) {
-        setError(err.message);
+        setError("데이터를 로드하는 중 오류가 발생했습니다.");
+      } finally {
+        setIsLoading(false);
       }
     };
-    loadCountries();
-  }, []);
-
-  // 직업과 학교 데이터의 초기값 설정
-  useEffect(() => {
-    if (occupations.length > 0) {
-      setFormData((prev) => ({ ...prev, job: occupations[0].value }));
-    }
-    if (schools.length > 0) {
-      setFormData((prev) => ({ ...prev, school: schools[0].value }));
-    }
+    loadData();
   }, []);
 
   // 타이머 로직
@@ -88,32 +87,27 @@ export default function Signup() {
       setError("유효한 이메일 주소를 입력해주세요.");
       return;
     }
+    setIsSendingCode(true);
     try {
       const response = await sendVerificationCode(formData.email);
-      if (response.success) {
-        setMessage(response.data.message);
-        setIsCodeSent(true);
-        setTimer(180);
-        setError("");
-      } else {
-        throw new Error(response.error.message);
-      }
+      setMessage(response.data.message);
+      setIsCodeSent(true);
+      setTimer(180); // 타이머 초기화
+      setError("");
     } catch (err) {
       setError(err.message || "인증번호 전송에 실패했습니다.");
       setMessage("");
+    } finally {
+      setIsSendingCode(false);
     }
   };
 
   const handleVerifyCode = async () => {
     try {
       const response = await verifyCode(formData.email, code);
-      if (response.success) {
-        setMessage(response.data.message);
-        setIsVerified(true);
-        setError("");
-      } else {
-        throw new Error(response.error.message);
-      }
+      setMessage(response.data.message);
+      setIsVerified(true);
+      setError("");
     } catch (err) {
       setError(err.message || "인증번호가 일치하지 않습니다.");
       setMessage("");
@@ -122,6 +116,10 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isTermsAccepted) {
+      setError("이용약관에 동의해주세요.");
+      return;
+    }
     if (formData.password.length < 8) {
       setError("비밀번호는 최소 8자 이상이어야 합니다.");
       return;
@@ -161,7 +159,7 @@ export default function Signup() {
     <div className="max-w-md mx-auto h-screen flex flex-col bg-white">
       {/* 헤더 */}
       <div className="flex items-center justify-between p-4 border-b">
-        <button className="text-xl" onClick={() => navigate(-1)}>
+        <button className="text-xl" onClick={() => navigate("/intro")}>
           ×
         </button>
         <div className="text-center font-medium">회원가입</div>
@@ -175,259 +173,255 @@ export default function Signup() {
           <p className="text-sm text-gray-600 mt-1">유학생을 위한 생활 팁스 서비스</p>
         </div>
 
-        {/* 회원가입 폼 */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center space-x-2">
+        {isLoading ? (
+          <p className="text-center text-gray-500">데이터를 로드 중입니다...</p>
+        ) : (
+          <div className="space-y-4">
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              name="loginId"
+              value={formData.loginId}
               onChange={handleInputChange}
-              placeholder="이메일"
-              className="w-full p-3 border rounded-md"
+              placeholder="아이디"
+              className="w-full p-3 border rounded-md bg-gray-100"
               required
-              disabled={isVerified}
             />
-            {!isVerified && (
-              <button
-                type="button"
-                onClick={handleSendCode}
-                className="p-3 bg-emerald-500 text-white rounded-md"
-                disabled={isCodeSent || !formData.email}
-              >
-                인증번호 전송
-              </button>
-            )}
-          </div>
-
-          {isCodeSent && !isVerified && (
             <div className="flex items-center space-x-2">
               <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="이메일"
+                className="w-full p-3 border rounded-md bg-gray-100"
+                required
+                disabled={isVerified}
+              />
+              {!isVerified && (
+                <button
+                  type="button"
+                  onClick={handleSendCode}
+                  className={`p-3 rounded-md text-white ${isSendingCode ? 'bg-gray-400' : 'bg-emerald-500'}`}
+                  disabled={isSendingCode || !formData.email}
+                >
+                  {isSendingCode ? '전송 중...' : '인증번호 전송'}
+                </button>
+              )}
+            </div>
+
+            {isCodeSent && !isVerified && (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="이메일 인증하기"
+                  className="w-full p-3 border rounded-md bg-gray-100"
+                  required
+                />
+                <div className="text-sm text-gray-500">{formatTime(timer)}</div>
+                <button
+                  type="button"
+                  onClick={handleVerifyCode}
+                  className="p-3 bg-emerald-500 text-white rounded-md"
+                  disabled={!code}
+                >
+                  인증
+                </button>
+              </div>
+            )}
+
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              placeholder="비밀번호"
+              className="w-full p-3 border rounded-md bg-gray-100"
+              required
+            />
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              placeholder="비밀번호 확인"
+              className="w-full p-3 border rounded-md bg-gray-100"
+              required
+            />
+            <input
+              type="text"
+              name="nickname"
+              value={formData.nickname}
+              onChange={handleInputChange}
+              placeholder="닉네임"
+              className="w-full p-3 border rounded-md bg-gray-100"
+              required
+            />
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="이름 (출생 본기)"
+              className="w-full p-3 border rounded-md bg-gray-100"
+              required
+            />
+            <div>
+              <input
                 type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="인증번호 입력"
-                className="w-full p-3 border rounded-md"
+                name="nation"
+                value={formData.nation}
+                onChange={handleInputChange}
+                list="countries-list"
+                placeholder="국가"
+                className="w-full p-3 border rounded-md bg-gray-100"
                 required
               />
-              <div className="text-sm text-gray-500">{formatTime(timer)}</div>
-              <button
-                type="button"
-                onClick={handleVerifyCode}
-                className="p-3 bg-emerald-500 text-white rounded-md"
-                disabled={!code}
-              >
-                인증
-              </button>
+              <datalist id="countries-list">
+                {countries.map((country) => (
+                  <option key={country.value} value={country.value}>
+                    {country.label}
+                  </option>
+                ))}
+              </datalist>
             </div>
-          )}
-
-          <input
-            type="text"
-            name="loginId"
-            value={formData.loginId}
-            onChange={handleInputChange}
-            placeholder="아이디"
-            className="w-full p-3 border rounded-md"
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            placeholder="비밀번호"
-            className="w-full p-3 border rounded-md"
-            required
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            placeholder="비밀번호 확인"
-            className="w-full p-3 border rounded-md"
-            required
-          />
-          <input
-            type="text"
-            name="nickname"
-            value={formData.nickname}
-            onChange={handleInputChange}
-            placeholder="닉네임"
-            className="w-full p-3 border rounded-md"
-            required
-          />
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="이름"
-            className="w-full p-3 border rounded-md"
-            required
-          />
-
-          {/* 국가 드롭다운 */}
-          <select
-            name="nation"
-            value={formData.nation}
-            onChange={handleInputChange}
-            className="w-full p-3 border rounded-md"
-            required
-          >
-            {countries.map((country) => (
-              <option key={country.value} value={country.value}>
-                {country.label}
-              </option>
-            ))}
-          </select>
-
-          {/* 직업 드롭다운 */}
-          <select
-            name="job"
-            value={formData.job}
-            onChange={handleInputChange}
-            className="w-full p-3 border rounded-md"
-            required
-          >
-            {occupations.map((occupation) => (
-              <option key={occupation.value} value={occupation.value}>
-                {occupation.label}
-              </option>
-            ))}
-          </select>
-
-          {/* 학교 드롭다운 */}
-          <select
-            name="school"
-            value={formData.school}
-            onChange={handleInputChange}
-            className="w-full p-3 border rounded-md"
-            required
-          >
-            {schools.map((school) => (
-              <option key={school.value} value={school.value}>
-                {school.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            name="residencePeriod"
-            value={formData.residencePeriod}
-            onChange={handleInputChange}
-            className="w-full p-3 border rounded-md"
-            required
-          >
-            <option value="1년">1년</option>
-            <option value="1-3개월">1-3개월</option>
-            <option value="1-2년">1-2년</option>
-            <option value="3년 이상">3년 이상</option>
-            <option value="3-6개월">3-6개월</option>
-          </select>
-
-          <div className="flex flex-col space-y-2">
-            <label className="text-sm">유학생생활 기간</label>
-            <div className="flex flex-wrap gap-2">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="residencePeriod"
-                  value="1-3개월"
-                  checked={formData.residencePeriod === "1-3개월"}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                1-3개월
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="residencePeriod"
-                  value="1-2년"
-                  checked={formData.residencePeriod === "1-2년"}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                1-2년
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="residencePeriod"
-                  value="3-6개월"
-                  checked={formData.residencePeriod === "3-6개월"}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                3-6개월
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="residencePeriod"
-                  value="3년 이상"
-                  checked={formData.residencePeriod === "3년 이상"}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                3년 이상
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="residencePeriod"
-                  value="1년"
-                  checked={formData.residencePeriod === "1년"}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                약 1년
-              </label>
+            <div>
+              <input
+                type="text"
+                name="job"
+                value={formData.job}
+                onChange={handleInputChange}
+                list="jobs-list"
+                placeholder="직업"
+                className="w-full p-3 border rounded-md bg-gray-100"
+                required
+              />
+              <datalist id="jobs-list">
+                {jobs.map((job) => (
+                  <option key={job.value} value={job.value}>
+                    {job.label}
+                  </option>
+                ))}
+              </datalist>
             </div>
+            <div>
+              <input
+                type="text"
+                name="school"
+                value={formData.school}
+                onChange={handleInputChange}
+                list="schools-list"
+                placeholder="학교"
+                className="w-full p-3 border rounded-md bg-gray-100"
+                required
+              />
+              <datalist id="schools-list">
+                {institutions.map((school) => (
+                  <option key={school.value} value={school.value}>
+                    {school.label}
+                  </option>
+                ))}
+              </datalist>
+            </div>
+            <div className="flex flex-col space-y-2">
+              <label className="text-sm">유학생생활 기간</label>
+              <div className="flex flex-wrap gap-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="residencePeriod"
+                    value="1-3개월"
+                    checked={formData.residencePeriod === "1-3개월"}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  1-3개월
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="residencePeriod"
+                    value="1-2년"
+                    checked={formData.residencePeriod === "1-2년"}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  1-2년
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="residencePeriod"
+                    value="3-6개월"
+                    checked={formData.residencePeriod === "3-6개월"}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  3-6개월
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="residencePeriod"
+                    value="3년 이상"
+                    checked={formData.residencePeriod === "3년 이상"}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  3년 이상
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="residencePeriod"
+                    value="1년"
+                    checked={formData.residencePeriod === "1년"}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  약 1년
+                </label>
+              </div>
+            </div>
+            <div className="flex flex-col space-y-2">
+              <label className="text-sm">약관 동의</label>
+              <div className="flex gap-2">
+                <label className="flex items-center text-sm">
+                  <input
+                    type="checkbox"
+                    name="willSettle"
+                    checked={formData.willSettle}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  만 14세 이상입니다. (필수)
+                </label>
+                <label className="flex items-center text-sm">
+                  <input
+                    type="checkbox"
+                    checked={isTermsAccepted}
+                    onChange={(e) => setIsTermsAccepted(e.target.checked)}
+                    className="mr-2"
+                  />
+                  이용약관에 동의합니다. (필수)
+                </label>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className={`w-full p-3 rounded-md text-white ${
+                isVerified && isTermsAccepted ? "bg-emerald-500" : "bg-gray-300 cursor-not-allowed"
+              }`}
+              disabled={!isVerified || !isTermsAccepted}
+            >
+              회원가입 완료하기
+            </button>
           </div>
+        )}
 
-          <div className="flex flex-col space-y-2">
-            <label className="text-sm">막간 정착의</label>
-            <div className="flex gap-2">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="willSettle"
-                  value={true}
-                  checked={formData.willSettle === true}
-                  onChange={() => setFormData((prev) => ({ ...prev, willSettle: true }))}
-                  className="mr-2"
-                />
-                만 14세 이상입니다. (필수)
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="willSettle"
-                  value={false}
-                  checked={formData.willSettle === false}
-                  onChange={() => setFormData((prev) => ({ ...prev, willSettle: false }))}
-                  className="mr-2"
-                />
-                이용약관 (필수)
-              </label>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className={`w-full p-3 rounded-md text-white ${
-              isVerified ? "bg-emerald-500" : "bg-gray-300 cursor-not-allowed"
-            }`}
-            disabled={!isVerified}
-          >
-            회원가입 완료하기
-          </button>
-        </form>
-
-        {/* 메시지 표시 */}
         {message && <p className="text-green-500 mt-4 text-center">{message}</p>}
         {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
         {!isVerified && (
@@ -435,7 +429,6 @@ export default function Signup() {
         )}
       </div>
 
-      {/* 비밀번호 불일치 모달 */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-md shadow-lg">

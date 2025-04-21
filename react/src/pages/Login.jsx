@@ -1,120 +1,82 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { signup, sendVerificationCode, verifyCode } from "../api/auth";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Bell, Heart, User } from "lucide-react";
 import { SITE_NAME } from "../constants";
 
-export default function Signup() {
+export default function LoginPage() {
   const [formData, setFormData] = useState({
-    email: "",
     loginId: "",
     password: "",
-    confirmPassword: "",
-    nickname: "",
-    name: "",
-    nation: "1",
-    job: "1",
-    school: "1",
-    residencePeriod: "1년",
-    willSettle: true,
-    provider: "ROADIT",
   });
-  const [code, setCode] = useState("");
+  const [autoLogin, setAutoLogin] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [isCodeSent, setIsCodeSent] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [timer, setTimer] = useState(180); // 3분 타이머 (180초)
   const navigate = useNavigate();
 
-  // 타이머 로직
-  useEffect(() => {
-    let interval;
-    if (isCodeSent && !isVerified && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isCodeSent, isVerified, timer]);
-
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+  // API 기본 URL - Vite 환경 변수 사용
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
   };
 
-  const handleSendCode = async () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError("유효한 이메일 주소를 입력해주세요.");
-      return;
-    }
-    try {
-      const response = await sendVerificationCode(formData.email);
-      setMessage(response.data.message);
-      setIsCodeSent(true);
-      setTimer(180); // 타이머 초기화
-      setError("");
-    } catch (err) {
-      setError(err.message || "인증번호 전송에 실패했습니다.");
-      setMessage("");
-    }
+  const handleAutoLoginChange = (e) => {
+    setAutoLogin(e.target.checked);
   };
 
-  const handleVerifyCode = async () => {
-    try {
-      const response = await verifyCode(formData.email, code);
-      setMessage(response.data.message);
-      setIsVerified(true);
-      setError("");
-    } catch (err) {
-      setError(err.message || "인증번호가 일치하지 않습니다.");
-      setMessage("");
-    }
-  };
-
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (formData.password.length < 8) {
-      setError("비밀번호는 최소 8자 이상이어야 합니다.");
-      return;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setShowModal(true);
-      return;
-    }
-    if (!isVerified) {
-      setError("이메일 인증을 완료해주세요.");
-      return;
-    }
     try {
-      const response = await signup({
-        email: formData.email,
-        loginId: formData.loginId,
-        password: formData.password,
-        nickname: formData.nickname,
-        name: formData.name,
-        nation: formData.nation,
-        job: formData.job,
-        school: formData.school,
-        residencePeriod: parseInt(formData.residencePeriod.replace("년", "")) * 12, // 년 단위를 개월로 변환
-        willSettle: formData.willSettle,
-        provider: formData.provider,
+      const response = await fetch(`${API_BASE_URL}/api/login/roadit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          loginId: formData.loginId,
+          password: formData.password,
+        }),
       });
-      setMessage(response.data.message);
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || "로그인에 실패했습니다.");
+      }
+
+      setMessage(data.message);
       setError("");
-      navigate("/signup-success"); // 성공 시 완료 페이지로 이동
+
+      if (autoLogin) {
+        localStorage.setItem("userId", data.userId);
+        localStorage.setItem("loginId", formData.loginId);
+      }
+
+      navigate("/intro");
     } catch (err) {
-      setError(err.message || "회원가입에 실패했습니다.");
+      const errorMessage = err.message || "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.";
+      setError(errorMessage);
+      setMessage("");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      window.location.href = `${API_BASE_URL}/api/auth/google`;
+    } catch (err) {
+      setError("구글 로그인에 실패했습니다. 서버 연결을 확인해주세요.");
+      setMessage("");
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    try {
+      window.location.href = `${API_BASE_URL}/api/auth/facebook`;
+    } catch (err) {
+      setError("페이스북 로그인에 실패했습니다. 서버 연결을 확인해주세요.");
       setMessage("");
     }
   };
@@ -123,74 +85,30 @@ export default function Signup() {
     <div className="max-w-md mx-auto h-screen flex flex-col bg-white">
       {/* 헤더 */}
       <div className="flex items-center justify-between p-4 border-b">
-        <button className="text-xl" onClick={() => navigate(-1)}>
+        <button className="text-xl" onClick={() => navigate("/intro")}>
           ×
         </button>
-        <div className="text-center font-medium">회원가입</div>
+        <div className="text-center font-medium">로그인</div>
         <div className="w-4"></div>
       </div>
 
       {/* 메인 콘텐츠 */}
       <div className="flex-1 p-6 flex flex-col">
+        {/* 로고 및 부제 */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-emerald-500">{SITE_NAME}</h1>
           <p className="text-sm text-gray-600 mt-1">유학생을 위한 생활 팁스 서비스</p>
         </div>
 
-        {/* 회원가입 폼 */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="이메일"
-              className="w-full p-3 border rounded-md"
-              required
-              disabled={isVerified}
-            />
-            {!isVerified && (
-              <button
-                type="button"
-                onClick={handleSendCode}
-                className="p-3 bg-emerald-500 text-white rounded-md"
-                disabled={isCodeSent || !formData.email}
-              >
-                인증번호 전송
-              </button>
-            )}
-          </div>
-
-          {isCodeSent && !isVerified && (
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="인증번호 입력"
-                className="w-full p-3 border rounded-md"
-                required
-              />
-              <div className="text-sm text-gray-500">{formatTime(timer)}</div>
-              <button
-                type="button"
-                onClick={handleVerifyCode}
-                className="p-3 bg-emerald-500 text-white rounded-md"
-                disabled={!code}
-              >
-                인증
-              </button>
-            </div>
-          )}
-
+        {/* 로그인 폼 */}
+        <form onSubmit={handleLogin} className="space-y-4">
           <input
             type="text"
             name="loginId"
             value={formData.loginId}
             onChange={handleInputChange}
             placeholder="아이디"
-            className="w-full p-3 border rounded-md"
+            className="w-full p-3 border rounded-md bg-gray-100"
             required
           />
           <input
@@ -199,204 +117,134 @@ export default function Signup() {
             value={formData.password}
             onChange={handleInputChange}
             placeholder="비밀번호"
-            className="w-full p-3 border rounded-md"
+            className="w-full p-3 border rounded-md bg-gray-100"
             required
           />
-          <input
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            placeholder="비밀번호 확인"
-            className="w-full p-3 border rounded-md"
-            required
-          />
-          <input
-            type="text"
-            name="nickname"
-            value={formData.nickname}
-            onChange={handleInputChange}
-            placeholder="닉네임"
-            className="w-full p-3 border rounded-md"
-            required
-          />
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="이름"
-            className="w-full p-3 border rounded-md"
-            required
-          />
-          <select
-            name="nation"
-            value={formData.nation}
-            onChange={handleInputChange}
-            className="w-full p-3 border rounded-md"
-            required
-          >
-            <option value="1">국가 1</option>
-            <option value="2">국가 2</option>
-            <option value="3">국가 3</option>
-          </select>
-          <select
-            name="job"
-            value={formData.job}
-            onChange={handleInputChange}
-            className="w-full p-3 border rounded-md"
-            required
-          >
-            <option value="1">직업 1</option>
-            <option value="2">직업 2</option>
-            <option value="3">직업 3</option>
-          </select>
-          <select
-            name="school"
-            value={formData.school}
-            onChange={handleInputChange}
-            className="w-full p-3 border rounded-md"
-            required
-          >
-            <option value="1">학교 1</option>
-            <option value="2">학교 2</option>
-            <option value="3">학교 3</option>
-          </select>
-          <select
-            name="residencePeriod"
-            value={formData.residencePeriod}
-            onChange={handleInputChange}
-            className="w-full p-3 border rounded-md"
-            required
-          >
-            <option value="1년">1년</option>
-            <option value="1-3개월">1-3개월</option>
-            <option value="1-2년">1-2년</option>
-            <option value="3년 이상">3년 이상</option>
-            <option value="3-6개월">3-6개월</option>
-          </select>
-          <div className="flex flex-col space-y-2">
-            <label className="text-sm">유학생생활 기간</label>
-            <div className="flex flex-wrap gap-2">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="residencePeriod"
-                  value="1-3개월"
-                  checked={formData.residencePeriod === "1-3개월"}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                1-3개월
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="residencePeriod"
-                  value="1-2년"
-                  checked={formData.residencePeriod === "1-2년"}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                1-2년
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="residencePeriod"
-                  value="3-6개월"
-                  checked={formData.residencePeriod === "3-6개월"}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                3-6개월
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="residencePeriod"
-                  value="3년 이상"
-                  checked={formData.residencePeriod === "3년 이상"}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                3년 이상
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="residencePeriod"
-                  value="1년"
-                  checked={formData.residencePeriod === "1년"}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                약 1년
-              </label>
-            </div>
-          </div>
-          <div className="flex flex-col space-y-2">
-            <label className="text-sm">막간 정착의</label>
-            <div className="flex gap-2">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="willSettle"
-                  value={true}
-                  checked={formData.willSettle === true}
-                  onChange={() => setFormData((prev) => ({ ...prev, willSettle: true }))}
-                  className="mr-2"
-                />
-                만 14세 이상입니다. (필수)
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="willSettle"
-                  value={false}
-                  checked={formData.willSettle === false}
-                  onChange={() => setFormData((prev) => ({ ...prev, willSettle: false }))}
-                  className="mr-2"
-                />
-                이용약관 (필수)
-              </label>
-            </div>
+
+          {/* 자동 로그인 체크박스 */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              checked={autoLogin}
+              onChange={handleAutoLoginChange}
+              className="w-5 h-5"
+            />
+            <label className="ml-2 text-sm">자동 로그인</label>
           </div>
 
+          {/* 로그인 버튼 */}
           <button
             type="submit"
-            className={`w-full p-3 rounded-md text-white ${
-              isVerified ? "bg-emerald-500" : "bg-gray-300 cursor-not-allowed"
-            }`}
-            disabled={!isVerified}
+            className="w-full p-3 bg-emerald-500 text-white rounded-md"
           >
-            회원가입 완료하기
+            로그인
           </button>
+
+          {/* 비밀번호 재설정 링크 */}
+          <div className="text-right text-sm text-gray-500">
+            <Link to="/reset-password" className="underline">
+              비밀번호를 잊으셨나요?
+            </Link>
+          </div>
+
+          {/* 소셜 로그인 구분선 */}
+          <div className="flex items-center my-4">
+            <div className="flex-1 border-t border-gray-300"></div>
+            <div className="px-3 text-xs text-gray-500">소셜 계정으로 간편 로그인</div>
+            <div className="flex-1 border-t border-gray-300"></div>
+          </div>
+
+          {/* 소셜 로그인 버튼 - 직접 SVG 구현 */}
+          <div className="flex justify-center gap-4">
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-12 h-12 rounded-full border flex items-center justify-center bg-white"
+            >
+              {/* 구글 아이콘 직접 SVG 구현 */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={handleFacebookLogin}
+              className="w-12 h-12 rounded-full border flex items-center justify-center bg-blue-600"
+            >
+              {/* 페이스북 아이콘 직접 SVG 구현 */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 320 512"
+                fill="white"
+              >
+                <path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z" />
+              </svg>
+            </button>
+          </div>
         </form>
+
+        {/* 계정 생성 */}
+        <div className="mt-auto">
+          <div className="text-center text-sm text-gray-500 mb-4">
+            아직 계정이 없으신가요?
+          </div>
+          <Link to="/signup">
+            <button className="w-full p-3 bg-emerald-500 text-white rounded-md">
+              새 계정 만들기
+            </button>
+          </Link>
+        </div>
 
         {/* 메시지 표시 */}
         {message && <p className="text-green-500 mt-4 text-center">{message}</p>}
         {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
-        {!isVerified && (
-          <p className="text-red-500 mt-4 text-center">이메일 인증을 완료해주세요.</p>
-        )}
       </div>
 
-      {/* 비밀번호 불일치 모달 */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-md shadow-lg">
-            <h2 className="text-lg font-medium mb-4">비밀번호 불일치</h2>
-            <p className="text-sm text-gray-600 mb-4">비밀번호가 일치하지 않습니다. 다시 확인해주세요.</p>
-            <button
-              onClick={() => setShowModal(false)}
-              className="w-full p-2 bg-emerald-500 text-white rounded-md"
-            >
-              확인
-            </button>
-          </div>
-        </div>
-      )}
+      {/* 하단 네비게이션 */}
+      <div className="flex justify-between items-center p-4 border-t">
+        <Link to="/search" className="flex flex-col items-center">
+          <Search className="h-6 w-6" />
+          <span className="text-xs">검색</span>
+        </Link>
+        <Link to="/notifications" className="flex flex-col items-center">
+          <Bell className="h-6 w-6" />
+          <span className="text-xs">알림</span>
+        </Link>
+        <Link to="/intro" className="flex flex-col items-center">
+          <div className="text-emerald-500 font-bold">{SITE_NAME}</div>
+          <span className="text-xs">HOME</span>
+        </Link>
+        <Link to="/likes" className="flex flex-col items-center">
+          <Heart className="h-6 w-6" />
+          <span className="text-xs">LIKE</span>
+        </Link>
+        <Link to="/profile" className="flex flex-col items-center">
+          <User className="h-6 w-6" />
+          <span className="text-xs">MY</span>
+        </Link>
+      </div>
     </div>
   );
 }
