@@ -14,7 +14,6 @@
 *.iws
 
 ### 🚀 Spring Boot ###
-.gradle/
 spring/.gradle/
 spring/build/
 spring/out/
@@ -24,33 +23,34 @@ spring/.idea/
 # Eclipse / STS
 .springBeans
 .sts4-cache
-.springBeans
 .apt_generated
 .classpath
 .factorypath
 .project
-.settings
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+.settings/
+spring/bin/
+!spring/src/main/**/bin/
+!spring/src/test/**/bin/
 
 # NetBeans
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/nbactions*.xml
-.nb-gradle/
+spring/nbproject/private/
+spring/nbbuild/
+spring/dist/
+spring/nbdist/
+spring/nbactions*.xml
+spring/.nb-gradle/
 
 ### ⚛️ React ###
-frontend/node_modules/
-frontend/dist/
-frontend/.env
-frontend/.vite
+react/node_modules/
+react/dist/
+react/.env
+react/.vite
+react/.DS_Store
 
 ### 🐳 Docker ###
 **/tmp/
 **/.container-logs/
+docker-compose.override.yml
 
 ### 📦 Package Managers ###
 npm-debug.log*
@@ -63,3 +63,6 @@ lerna-debug.log*
 dist/
 dist-ssr/
 out/
+
+### ✅ Important ###
+!docker-compose.yml
