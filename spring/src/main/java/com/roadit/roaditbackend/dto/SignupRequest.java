@@ -1,11 +1,14 @@
 package com.roadit.roaditbackend.dto;
 
+import com.roadit.roaditbackend.enums.LanguageType;
+import com.roadit.roaditbackend.enums.Nation;
 import com.roadit.roaditbackend.enums.LoginType;
 import lombok.Data;
 import jakarta.validation.constraints.*;
 
 @Data
 public class SignupRequest {
+
     @Email
     @NotBlank
     private String email;
@@ -17,24 +20,16 @@ public class SignupRequest {
     @NotBlank
     private String nickname;
 
-    @NotBlank
-    private String name;
-
-    @NotBlank
-    private String nation;
-
-    @NotBlank
-    private String job;
-
-    @NotBlank
-    private String school;
+    private String name; // nullable 허용
 
     @NotNull
-    @Min(0)
-    private Integer residencePeriod;
+    private Nation nation;
 
     @NotNull
-    private Boolean willSettle;
+    private LanguageType language;
+
+    @NotBlank
+    private String residencePeriod;
 
     @NotNull
     private LoginType provider; // ROADIT or GOOGLE

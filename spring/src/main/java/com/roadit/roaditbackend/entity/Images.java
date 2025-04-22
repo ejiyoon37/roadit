@@ -35,5 +35,4 @@ public class Images {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    // Getter/Setter 생략 or Lombok 사용 가능
 }

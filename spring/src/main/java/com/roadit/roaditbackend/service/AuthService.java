@@ -38,9 +38,6 @@ public class AuthService {
     private final UserRepository userRepository;
     private final UserLoginProviderRepository userLoginProviderRepository;
     private final PasswordEncoder passwordEncoder;
-    private final NationsRepository nationsRepository;
-    private final JobsRepository jobsRepository;
-    private final SchoolsRepository schoolsRepository;
     private final EmailService emailService;
     private final UserLoginProviderRepository providerRepository;
     private final UserRefreshTokenRepository refreshTokenRepository;
@@ -51,6 +48,7 @@ public class AuthService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
 
+    @Transactional
     public SignupResponse signup(SignupRequest request) {
         if (request.getProvider() == LoginType.ROADIT &&
                 userLoginProviderRepository.existsByLoginId(request.getLoginId())) {
@@ -67,14 +65,9 @@ public class AuthService {
                 .email(request.getEmail())
                 .nickname(request.getNickname())
                 .name(request.getName())
-                .nation(nationsRepository.findById(Long.parseLong(request.getNation()))
-                        .orElseThrow(() -> new IllegalArgumentException("국가 정보가 유효하지 않습니다.")))
-                .job(jobsRepository.findById(Long.parseLong(request.getJob()))
-                        .orElseThrow(() -> new IllegalArgumentException("직업 정보가 유효하지 않습니다.")))
-                .school(schoolsRepository.findById(Long.parseLong(request.getSchool()))
-                        .orElseThrow(() -> new IllegalArgumentException("학교 정보가 유효하지 않습니다.")))
-                .residencePeriod(request.getResidencePeriod())
-                .willSettle(request.getWillSettle())
+                .nation(request.getNation()) // 👉 enum
+                .language(request.getLanguage()) // 👉 enum
+                .residencePeriod(request.getResidencePeriod()) // 👉 String
                 .status(UserStatus.ACTIVE)
                 .build();
         userRepository.save(user);
@@ -93,6 +86,7 @@ public class AuthService {
 
         return new SignupResponse("회원가입이 완료되었습니다.", user.getId());
     }
+
 
     @Transactional
     public String resetPassword(PasswordResetRequest request) {

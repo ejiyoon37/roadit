@@ -1,60 +1,51 @@
 package com.roadit.roaditbackend.entity;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import com.roadit.roaditbackend.enums.UserStatus;
+import com.roadit.roaditbackend.enums.Nation;
+import com.roadit.roaditbackend.enums.LanguageType;
 
 @Entity
-@Builder
 @Table(name = "users")
 @Getter
-@AllArgsConstructor
+@Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class Users {
 
-    @Id //google sub
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(length = 36)
     private Long id;
 
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false, unique = true)
     private String nickname;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nation_id")
-    private Nations nation;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id")
-    private Jobs job;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id")
-    private Schools school;
-
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    private Nation nation;
+
+    @Enumerated(EnumType.STRING)
+    private LanguageType language;
+
     @Column(name = "residence_period")
-    private Integer residencePeriod;
-
-    @Column(name = "will_settle")
-    private Boolean willSettle;
-
-    private String role;
-
-    private Integer level;
+    private String residencePeriod;
 
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
