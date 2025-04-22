@@ -1,0 +1,15 @@
+# node modules & build output
+node_modules
+dist
+
+# 환경변수 및 설정
+.env
+.vite
+
+# 로그
+*.log
+
+# OS / IDE / 기타
+.DS_Store
+.idea
+.vscode

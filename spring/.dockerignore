@@ -1,7 +1,14 @@
+# 빌드 파일
 build
 out
-**/*.iml
-.idea
-*.log
+.gradle
+*.class
+
+# 설정
+.env
+
+# OS / IDE / 기타
 .DS_Store
-../.env
+.idea
+.vscode
+*.iml
