@@ -25,6 +25,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.ResponseErrorHandler;
+import java.io.IOException;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.UUID;
 import java.time.LocalDateTime;
@@ -177,20 +181,28 @@ public class AuthService {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<String> responseEntity = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                String.class
-        );
-
-        String response = responseEntity.getBody();
-
+        String response;
         JsonNode profile;
+
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    String.class
+            );
+            response = responseEntity.getBody();
+            if (response != null && response.trim().startsWith("<!DOCTYPE html")) {
+                throw new IllegalArgumentException("Google token error: HTML 응답을 받았습니다. 토큰이 유효하지 않을 수 있습니다.");
+            }
+        } catch (HttpClientErrorException ex) {
+            throw new IllegalArgumentException("유효하지 않은 Google access token입니다.");
+        }
+
         try {
             profile = objectMapper.readTree(response);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse Google response", e);
+            throw new RuntimeException("Google 응답을 파싱하는 데 실패했습니다.", e);
         }
 
         if (profile.has("error")) {
@@ -205,6 +217,7 @@ public class AuthService {
                 .orElseGet(() -> {
                     Users newUser = Users.builder()
                             .email(email)
+                            .nickname(name)
                             .name(name)
                             .status(UserStatus.ACTIVE)
                             .build();
