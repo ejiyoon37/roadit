@@ -1,8 +1,8 @@
 package com.roadit.roaditbackend.controller;
 
 import com.roadit.roaditbackend.dto.ApiResponse;
+import com.roadit.roaditbackend.entity.ExplorePost;
 import com.roadit.roaditbackend.security.JwtUtil;
-import com.roadit.roaditbackend.service.ExplorePostService;
 import com.roadit.roaditbackend.service.WishService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/wishlist")
 @RequiredArgsConstructor
 public class WishlistController {
 
@@ -19,7 +21,7 @@ public class WishlistController {
     private final WishService wishService;
     private final JwtUtil jwtUtil;
 
-    @PostMapping("/posts/{postId}/wishlist")
+    @PostMapping("/posts/{postId}")
     public ResponseEntity<ApiResponse<String>> toggleWishlist(
             @PathVariable Long postId,
             HttpServletRequest request) {
@@ -41,5 +43,22 @@ public class WishlistController {
         throw new IllegalArgumentException("Authorization header is missing or invalid");
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<ApiResponse<List<ExplorePost>>> getWishedPosts(@PathVariable Long userId) {
+        List<ExplorePost> wishedPosts = wishService.getWishedPostsByUser(userId);
+        return ResponseEntity.ok(ApiResponse.success(wishedPosts));
+    }
+
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<ApiResponse<String>> deleteWishlist(
+            @PathVariable Long postId,
+            HttpServletRequest request) {
+
+        String token = extractToken(request);
+        Long userId = Long.parseLong(jwtUtil.getUserIdFromToken(token));
+
+        wishService.removeWish(userId, postId);
+        return ResponseEntity.ok(ApiResponse.success("가보고 싶어요 항목이 삭제되었습니다."));
+    }
 
 }

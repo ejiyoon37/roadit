@@ -57,4 +57,17 @@ public class WishService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void removeWish(Long userId, Long postId) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+        ExplorePost post = explorePostRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
+
+        Wishlist wish = wishlistRepository.findByUserAndPost(user, post)
+                .orElseThrow(() -> new IllegalArgumentException("해당 위시리스트 항목이 없습니다."));
+
+        wishlistRepository.delete(wish);
+    }
+
 }
