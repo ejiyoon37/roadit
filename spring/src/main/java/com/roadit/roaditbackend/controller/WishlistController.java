@@ -3,6 +3,7 @@ package com.roadit.roaditbackend.controller;
 import com.roadit.roaditbackend.dto.ApiResponse;
 import com.roadit.roaditbackend.security.JwtUtil;
 import com.roadit.roaditbackend.service.ExplorePostService;
+import com.roadit.roaditbackend.service.WishService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,8 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequiredArgsConstructor
 public class WishlistController {
 
-    private final ExplorePostService explorePostService;
+
+    private final WishService wishService;
     private final JwtUtil jwtUtil;
 
     @PostMapping("/posts/{postId}/wishlist")
@@ -25,7 +27,7 @@ public class WishlistController {
         String token = extractToken(request);
         Long userId = Long.parseLong(jwtUtil.getUserIdFromToken(token));
 
-        boolean added = explorePostService.toggleWish(userId, postId);
+        boolean added = wishService.toggleWish(userId, postId);
         String msg = added ? "가보고 싶어요 등록됨" : "가보고 싶어요 취소됨";
 
         return ResponseEntity.ok(ApiResponse.success(msg));
@@ -38,4 +40,6 @@ public class WishlistController {
         }
         throw new IllegalArgumentException("Authorization header is missing or invalid");
     }
+
+
 }

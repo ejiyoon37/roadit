@@ -176,26 +176,9 @@ public class ExplorePostService {
         post.setUpdatedAt(LocalDateTime.now());
     }
 
-    @Transactional
-    public boolean toggleWish(Long userId, Long postId) {
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
-        ExplorePost post = explorePostRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
 
-        Optional<Wishlist> wish = wishlistRepository.findByUserAndPost(user, post);
 
-        if (wish.isPresent()) {
-            wishlistRepository.delete(wish.get());
-            return false;
-        } else {
-            Wishlist newWish = new Wishlist();
-            newWish.setUser(user);
-            newWish.setPost(post);
-            wishlistRepository.save(newWish);
-            return true;
-        }
-    }
+
 
 
 }
