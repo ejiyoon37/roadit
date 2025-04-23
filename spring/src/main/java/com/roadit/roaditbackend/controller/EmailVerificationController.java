@@ -6,7 +6,10 @@ import com.roadit.roaditbackend.service.EmailVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.roadit.roaditbackend.repository.UserRepository;
 
+
+import org.springframework.http.HttpStatus;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,18 +20,23 @@ public class EmailVerificationController {
 
     private final EmailVerificationService verificationService;
     private final EmailService emailService;
+    private final UserRepository userRepository;
 
     @PostMapping("/send-code")
     public ResponseEntity<ApiResponse<Map<String, String>>> sendVerificationCode(@RequestParam String email) {
+        if (userRepository.existsByEmail(email)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.error("이미 가입된 이메일입니다.", "DuplicateEmail"));
+        }
         try {
             String code = verificationService.createAndSendVerification(email);
 
             String subject = "roadit 이메일 인증번호";
             String body = """
-                    <h2>인증번호입니다</h2>
-                    <p>아래 코드를 입력해주세요.</p>
-                    <h1>%s</h1>
-                    """.formatted(code);
+                <h2>인증번호입니다</h2>
+                <p>아래 코드를 입력해주세요.</p>
+                <h1>%s</h1>
+                """.formatted(code);
 
             emailService.sendVerificationEmail(email, subject, body);
 
@@ -41,6 +49,7 @@ public class EmailVerificationController {
                     .body(ApiResponse.error("인증번호 전송에 실패했습니다.", e.getClass().getSimpleName()));
         }
     }
+
 
     @PostMapping("/verify-code")
     public ResponseEntity<ApiResponse<Map<String, String>>> verifyCode(@RequestParam String email, @RequestParam String code) {
