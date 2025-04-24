@@ -64,4 +64,5 @@ public class EmailVerificationController {
                     .body(ApiResponse.error("인증번호가 일치하지 않습니다.", "InvalidVerificationCode"));
         }
     }
+
 }
